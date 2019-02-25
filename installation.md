@@ -132,6 +132,6 @@ cp -r $FOAM_TUTORIALS/incompressible/simpleFoam/pitzDaily ./
 cd pitzDaily
 blockMesh
 simpleFoam
-#This last command will only work if the steps explained in Additional installation have been completed.
+#This last command will only work if the steps explained in "Additional installations" have been completed.
 paraFoam
 ```
