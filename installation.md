@@ -123,7 +123,7 @@ Use the following commands to check if the installation was correctly completed.
 
 ```bash
 #The next command gives a general overview of all installed OpenFOAM parts
-foamInstallationCheck
+foamInstallationTest
 #In order to execute an example tutorial the run folder needs to be created
 mkdir -p $FOAM_RUN
 #Executing the pitzDaily tutorial
