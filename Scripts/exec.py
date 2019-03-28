@@ -19,7 +19,7 @@ def decomposeParDict():
                 numberelem = line.split(".")[1].split('"')[0]
                 return numberelem
 
-#       0          1         2       3       4       5         6             7           8           9           10              11              12          13              14
+#	0          1         2       3       4       5         6             7           8           9           10              11              12          13              14
 # application startFrom startTime stopAt endTime deltaT writeControl writeInterval purgeWrite writeFormat writePrecision writeCompression timeFormat timePrecision runTimeModifiable
 
 def execinfo():
@@ -53,17 +53,17 @@ def count_rows(filename):
 
 
 def main():
-    print(" Begining execution\n\n")
+    print("\nBegining execution\n\n")
     os.system("./Allclean")
     start = timer()
     os.system("./Allrun")
     end = timer()
     measured = end-start
-    print("\n\n Execution ended. Measured time: %s\n" %measured)
+    measured = "%.4f" % measured
+    print("\n\n Execution ended. Measured time: " +measured)
     filename_csv = "exec.csv"
 
     with open (filename_csv, 'a') as table:
-        measured = 0
         row_count = count_rows(filename_csv)
 
         #decomposeParDict
@@ -80,7 +80,7 @@ def main():
         else:
             another_line = str(row_count)
 
-        another_line=another_line+","+str(measured)+","+str(decomp)
+        another_line=another_line+","+measured+","+str(decomp)
 
         for inf in info:
             first_line=first_line+","+inf[0]
@@ -101,7 +101,7 @@ def main():
         if row_count==0:
             table.write(first_line+",readtime\n")
         table.write(another_line+","+str(auxtime)+"\n")
-
+        print another_line
     print("\nCSV file modified/created")
 
 

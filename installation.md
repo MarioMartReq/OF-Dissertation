@@ -100,7 +100,7 @@ In order to be able to forward the screen from the server to your local machine,
 ```bash
 #Sometimes, these packages are already installed. Test them with the following command.
 xeyes
-#If not, install X11 with the followign command
+#If not, install X11 with the following command
 yum install -y xorg-x11-server-Xorg xorg-x11-xauth xorg-x11-apps
 ```
 
@@ -135,3 +135,10 @@ simpleFoam
 #This last command will only work if the steps explained in "Additional installations" have been completed.
 paraFoam
 ```
+
+#### Post-installation process (needs to be tested)
+
+cc in /root/OpenFOAM/OpenFOAM-v1812/wmake/rules/linux64Icc/c and c++ needs to be modified to be mpiicc
+809  wcleanBuild -h
+810  wcleanBuild -a
+811  ./Allwmake
