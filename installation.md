@@ -42,6 +42,14 @@ make
 sudo make install
 ```
 
+In case that **./bootstrap** prints that there is errors with the compilers, the following might be required
+```bash
+export CC='../gcc'
+export CXX='../g++'
+#You might need to export as well the following
+export LD_LIBRARY_PATH=/../lib64
+```
+
 ##### OpenFOAM download
 
 According to the [2019 SCC benchmarking rules](http://hpcadvisorycouncil.com/events/student-cluster-competition/Benchmarking/ "SCC website"), during the competition, the OpenFOAM version will be the 1812, available to download in its main page. The following steps are required to download and install OpenFOAM.
@@ -86,6 +94,7 @@ export FOAM_MPI=INTELMPI";
 After executing the command `load_openfoam` and `foam` (that will bring us to the main OpenFOAM folder), the compilation and installation can start simply by executing the following command.
 
 ```bash
+export WM_NCOMPPROCS=24
 ./Allwmake
 ```
 
