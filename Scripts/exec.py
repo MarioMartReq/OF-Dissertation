@@ -201,8 +201,9 @@ def exec_with_modification(output_filename,filename, variable, value, message=No
 
 def main():
     # exec_with_modification(output_filename,filename, variable, value, message=None,line=None,decomp=-1)
-    for i in range(6,26,2):
-        exec_with_modification("orig_proc_number","allrun","decomposeParDict",i,"Experiment with original meshing testing more procs",None,i)
+    print ("hi")
+    # for i in range(6,26,2):
+    #     exec_with_modification("orig_proc_number","allrun","decomposeParDict",i,"Experiment with original meshing testing more procs",None,i)
 
 if __name__ == "__main__":
     main()

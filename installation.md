@@ -1,6 +1,11 @@
 # Environment setup and OpenFOAM installation notes.
 
-This document contains notes taken during the initial environment setup in the cluster provided by the SCC sponsor, Boston Limited, and the posterior OpenFOAM installation.
+This document contains notes taken during the initial environment setup in the cluster provided by the SCC sponsor, Boston Limited, and the posterior OpenFOAM installation. The instructions are given for installing and running OpenFoam with Intel compilers and Intel MPI.
+
+# Table of Contents
+1. [Installation of Intel Parallel Studio](#Intel-Compilers)
+2. [Example2](#example2)
+3. [Third Example](#third-example)
 
 #### Intel Compilers
 
