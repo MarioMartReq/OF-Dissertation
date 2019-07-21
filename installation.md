@@ -82,8 +82,8 @@ export WM_MPLIB=INTELMPI
 
 Lastly, file `~/OpenFOAM/OpenFOAM-v1812/wmake/rules/linux64Icc/mplibINTELMPI` needs to be modified as well.
 ```bash
-PINC	   = -I $(MPI_ARCH_PATH)include
-PLIBS	   = -L$(MPI_ARCH_PATH)lib/release -lmpi
+PINC	   = -isystem $(MPI_ARCH_PATH)/intel64/include
+PLIBS	   = -L$(MPI_ARCH_PATH)/intel64/lib/release -lmpi
 ```
 
 Lastly, before proceeding with the installation, we can add the following lines to `~/.bash_profile`. Exit the SSH connection, and re-enter, and those changes will take places.

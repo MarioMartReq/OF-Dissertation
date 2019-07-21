@@ -1,7 +1,9 @@
 import csv
 import os
 import numpy as np
+import time
 from timeit import default_timer as timer
+import sys
 
 # returns the execution time of one log. file
 def extract_exec_time(filename):
@@ -27,7 +29,7 @@ def get_num_cells():
             if 'cells:            ' in line:
                 return line.split('cells:            ')[1].split('\n')[0]
 
-# function that changes the 
+# function that changes the
 def modify_allrun_decomposeParDict(number):
     with open("Allrun" , 'r+b') as f:
         lines = f.readlines()
@@ -41,6 +43,16 @@ def modify_allrun_decomposeParDict(number):
                 f.close()
                 return
 
+def extract_lines(filename):
+    with open(filename, 'r') as f:
+        lines = f.readlines()
+        f.close()
+    return lines
+
+def substitute_lines(filename, lines):
+    with open(filename, 'r+b') as f:
+        f.writelines(lines)
+        f.close()
 
 # this requires the spefecied line to contain a point between the filenam  and the number of processes
 def read_allrun_decomposeParDict():
@@ -80,10 +92,10 @@ def modify_file(filename, variable, value,line_number=None):
             line_number-=1
             newline = lines[line_number].split(variable + " ")[0]+variable+" "+str(value)+";\n"
             lines[line_number]=newline
-        
+
         if newline is None:
             return -1
-        else:   
+        else:
             print("File modified. Variable '"+variable+"' set up as '"+str(value)+"'")
             f.seek(0, 0)
             f.truncate()
@@ -102,64 +114,53 @@ def execution_raw():
     measured = end-start
     measured = "%.4f" % measured
     print("\n\n Execution ended. Measured time: " +measured)
-    filename_csv = "exec.csv"
 
-    with open (filename_csv, 'a') as table:
-        row_count = count_rows(filename_csv)
-
-        #decomposeParDict
-        decomp = 6 # default
-        decomp = decomposeParDict()
-        # print decomp
-        info = execinfo()
-        # for case in info:
-        #     print case
-
-        first_line="Number,MeasuredTime,decomp"
+    filenamecsv = 'default_exec.csv'
+    with open (filenamecsv, 'a') as table:
+        row_count = count_rows(filenamecsv)
+        first_line="Number,MeasuredTime,procNum,numCells,potentialFoam,simpleFoam,combineP+S,snappyHexMesh,Comment"
+        # Counting the number of experiments.
         if row_count==0:
             another_line = "1"
         else:
             another_line = str(row_count)
 
-        another_line=another_line+","+measured+","+str(decomp)
+        # total execution time, number of proc used and number of cells
+        another_line+=','+measured+','+read_allrun_decomposeParDict()+','+get_num_cells()
 
-        for inf in info:
-            first_line=first_line+","+inf[0]
-            another_line=another_line+","+inf[1]
+        # adding execution times for potetialFoam and simpleFoam. If more variables wanted to be added,
+        # this is when it should be done
+        another_line+=','+extract_exec_time("log.potentialFoam")+','+extract_exec_time("log.simpleFoam")+','+str(float(extract_exec_time("log.potentialFoam"))+ float(extract_exec_time("log.simpleFoam")))+','+extract_exec_time("log.snappyHexMesh")+',""'
 
-        files = [filename for filename in os.listdir('.') if filename.startswith("log")]
-        auxtime=0
-        for file in files:
-            # print file
-            time = extractExecTime(file)
-            # print time
-            if time!=-1:
-                if row_count == 0:
-                    first_line=first_line+","+file.split(".")[1]
-                time = time.replace(" ","")
-                another_line=another_line+","+time
-                auxtime=auxtime+float(time)
         if row_count==0:
-            table.write(first_line+",readtime")
-        table.write("\n"+another_line+","+str(auxtime))
-        print another_line
+            table.write(first_line)
+        table.write("\n"+another_line)
     print("\nCSV file modified/created")
 
 
 # the idea behind this function is that it will invoque the modification of the function
-# and then clean and execute the foam experiment. After completition, it will record the excution time 
-# of the whole execution, simple and potential foam, and what have been modified in for this execution. 
+# and then clean and execute the foam experiment. After completition, it will record the excution time
+# of the whole execution, simple and potential foam, and what have been modified in for this execution.
 # the variables message, line and decomp are optional
+
+# message = if none, the csv message field will be left blank
+# line =  if specified, it will modified an specific line number
+# decomp=-1 implies that the parameter that is going to be changed is not in allrun. other number means that allrun is going to be changed
+
 def exec_with_modification(output_filename,filename, variable, value, message=None,line=None,decomp=-1):
     print("\nCleaning and begining execution\n")
     print("Printing to "+output_filename+".csv. Changes to "+filename+" , variable: '"+variable+"', value: "+str(value)+"\n\n")
     if decomp is -1:
-        if modify_file(filename, variable, value) is -1:
+        default_lines = extract_lines("system/"+filename)
+        if modify_file(filename, variable, value, line) is -1:
             print "Error modifying the file. It does not exist or the variable cannot be found."
             return 1
+        substitute_lines("system/"+filename, default_lines)
     else:
+        # default_lines = extract_lines("system/"+filename)
         modify_allrun_decomposeParDict(decomp)
-    
+        # substitute_lines("system/"+filename, default_lines)
+
     os.system("./Allclean")
     start = timer()
     os.system("./Allrun")
@@ -167,22 +168,22 @@ def exec_with_modification(output_filename,filename, variable, value, message=No
     measured = end-start
     measured = "%.4f" % measured
     print("\n\n Execution ended. Measured total time: " +measured)
-    
+
     with open (output_filename+'.csv', 'a') as table:
         row_count = count_rows(output_filename+'.csv')
         first_line="Number,Message,MeasuredTime,procNum,numCells,potentialFoam,simpleFoam,combineP+S,snappyHexMesh,fileModified,Variable,newValue"
-        # Counting the number of experiments. 
+        # Counting the number of experiments.
         if row_count==0:
             another_line = "1"
         else:
             another_line = str(row_count)
-        
+
         # If no message was provided, won't write anything
         if message is None:
             another_line+=','
         else:
             another_line+=',"'+message+'"'
-        
+
         # total execution time, number of proc used and number of cells
         another_line+=','+measured+','+read_allrun_decomposeParDict()+','+get_num_cells()
 
@@ -200,11 +201,15 @@ def exec_with_modification(output_filename,filename, variable, value, message=No
 
 
 def main():
-    # exec_with_modification(output_filename,filename, variable, value, message=None,line=None,decomp=-1)
-    print ("hi")
+    if len(sys.argv) > 1:
+        if sys.argv[1]=='1':
+            execution_raw()
+    # print len(sys.argv)
     # for i in range(6,26,2):
-    #     exec_with_modification("orig_proc_number","allrun","decomposeParDict",i,"Experiment with original meshing testing more procs",None,i)
+    #     write_decomposeParDict(i)
+    #     exec_with_modification("cores_test","Allrun","numberOfSubdomains",i,"Testing number of cores",None,i)
 
+
+# instructions
 if __name__ == "__main__":
     main()
-    
