@@ -1,3 +1,5 @@
+# Comment this if to download and extract in the same folder
+
 if [ -z $1 ]
 then
     mkdir OpenFOAM
