@@ -1,3 +1,27 @@
+Last login: Mon Jul 22 07:33:46 on console
+Marios-MacBook-Pro:~ mariomartinezrequena$ ssh nextgen
+s1888807@hydra-vpn.epcc.ed.ac.uk's password: 
+s1888807@nextgenio-login1's password: 
+Last login: Sun Jul 21 15:41:23 2019 from gateway
+     ____________________________________
+    /   /   /   /   /   /   /   /   /   /
+   / n / e / x / t / g / e / n / i / o /
+  /___/___/___/___/___/___/___/___/___/
+
+
+[s1888807@nextgenio-login1 ~]$ run
+[s1888807@nextgenio-login1 run]$ cd renault/
+[s1888807@nextgenio-login1 renault]$ vim exec_foam.py
+
+
+
+
+
+
+
+
+
+
 import csv
 import os
 import numpy as np
@@ -13,6 +37,32 @@ def extract_exec_time(filename):
             if line.startswith("ExecutionTime") or line.startswith("Finished meshing in"):
                 return str(line.split("=")[1].split("s")[0].strip())
         return -1
+
+# picks the number of processes from log.simpleFoam
+def get_num_proc():
+    with open("log.simpleFoam") as f:
+        lines = f.readlines()
+        for line in lines:
+            if "nProcs : " in line:
+                return line.split('nProcs : ')[1].split("\n")[0]
+
+def get_iter():
+    with open("log.simpleFoam") as f:
+        lines = f.readlines()
+        invert_lines = reversed(lines)
+        time_init=0
+        time_final=0
+        for line in lines:
+            if line.startswith("Time = "):
+                time_init=int(line.split('Time = ')[1].split("\n")[0])
+                break
+
+        for line in invert_lines:
+            if line.startswith("Time = "):
+                time_final=int(line.split('Time = ')[1].split("\n")[0])
+                break
+
+        return str((time_final-time_init)+1)
 
 
 # counts the number of entries in specified csv
@@ -103,6 +153,31 @@ def modify_file(filename, variable, value,line_number=None):
             f.close()
             return
     return -1
+
+def pick_info():
+    print("\nCollecting execution info\n\n")
+    filenamecsv = 'collected_info.csv'
+    with open (filenamecsv, 'a') as table:
+        row_count = count_rows(filenamecsv)
+        first_line="Number,simpleFoam,procNum,potentialFoam,combineP+S,NumberIter,sec/iter,Comment"
+        # Counting the number of experiments.
+        if row_count==0:
+            another_line = "1"
+        else:
+            another_line = str(row_count)
+
+        time_simple=extract_exec_time("log.simpleFoam")
+        num_iter=get_iter()
+        # total execution time, number of proc used and number of cells
+        another_line+=','+time_simple+','+get_num_proc()
+
+        # adding execution times for pontetialFoam and simpleFoam. If more variables wanted to be added,
+        # this is when it should be done
+        another_line+=','+extract_exec_time("log.potentialFoam")+','+str(float(extract_exec_time("log.potentialFoam"))+ float(extract_exec_time("log.simpleFoam")))+','+num_iter+','+str(float(time_simple)/float(num_iter))+',""'
+        if row_count==0:
+            table.write(first_line)
+        table.write("\n"+another_line)
+    print("\nCSV file modified/created")
 
 # excutes without arguments, recording info contained in various log files
 def execution_raw():
@@ -201,13 +276,15 @@ def exec_with_modification(output_filename,filename, variable, value, message=No
 
 
 def main():
-    if len(sys.argv) > 1:
-        if sys.argv[1]=='1':
-            execution_raw()
+    # if len(sys.argv) > 1:
+    #     if sys.argv[1]=='1':
+    #         execution_raw()
+
     # print len(sys.argv)
     # for i in range(6,26,2):
     #     write_decomposeParDict(i)
     #     exec_with_modification("cores_test","Allrun","numberOfSubdomains",i,"Testing number of cores",None,i)
+    write_decomposeParDict(192,None)
 
 
 # instructions
