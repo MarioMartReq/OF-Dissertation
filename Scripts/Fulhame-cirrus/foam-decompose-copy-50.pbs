@@ -1,0 +1,21 @@
+#!/bin/bash --login
+#
+##PBS -N foam
+#PBS -l place=excl
+#PBS -l select=1:ncpus=6
+#PBS -l walltime=3:0:0
+#PBS -A d167-s1888807
+
+cd $PBS_O_WORKDIR
+
+module load intel-compilers-18 intel-mpi-18
+
+source /lustre/home/d167/s1888807/dissertation/intel-vanilla-19/OpenFOAM-v1812/etc/bashrc
+
+total_proc=1800
+
+decompDict="-decomposeParDict system/decomposeParDict.$total_proc"
+
+rm -rf 0
+cp -rf 0.orig 0
+decomposePar -force $decompDict > log.decomposePar

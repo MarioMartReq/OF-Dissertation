@@ -15,6 +15,14 @@ def extract_exec_time(filename):
                 return str(line.split("=")[1].split("s")[0].strip())
         return -1
 
+def extract_clock_time(filename):
+    with open (filename) as f:
+        lines = reversed(f.readlines())#.reverse()
+        for line in lines:
+            if "ClockTime" in line:
+                return str(line.split("ClockTime = ")[1].split("s")[0].strip())
+        return -1
+
 def get_time_for_iter(iter):
     with open("log.simpleFoam") as f:
         lines = f.readlines()
@@ -25,6 +33,18 @@ def get_time_for_iter(iter):
                 continue
             if aux==1 and line.startswith("ExecutionTime"):
                 return str(line.split("=")[1].split("s")[0].strip())
+        return -1
+
+def get_clock_for_iter(iter):
+    with open("log.simpleFoam") as f:
+        lines = f.readlines()
+        aux = 0
+        for line in lines:
+            if line.startswith("Time = "+str(iter)):
+                aux = 1
+                continue
+            if aux==1 and "ClockTime" in line:
+                return str(line.split("ClockTime = ")[1].split("s")[0].strip())
         return -1
 
 # picks the number of processes from log.simpleFoam
@@ -108,7 +128,7 @@ def write_decomposeParDict(number,orig=None):
     if orig is None:
         orig="decomposeParDict"
     if os.path.isfile("/system/"+orig+"."+number):
-        os.system("rm -f sytem/"+orig+"."+number)
+        os.system("rm -f system/"+orig+"."+number)
 
     os.system("cp system/"+orig+" system/"+orig+"."+number)
     modify_file(orig+"."+number, "numberOfSubdomains", str(number))
@@ -143,12 +163,15 @@ def modify_file(filename, variable, value,line_number=None):
             return
     return -1
 
-def pick_info(iter):
+def pick_info(iter,name=None,comment=None):
     print("\nCollecting execution info for "+str(iter)+"iterations\n\n")
-    filenamecsv = 'collected_info_under.csv'
+    if (name==None):
+        filenamecsv = 'collected_info_under.csv'
+    else:
+        filenamecsv=name+'.csv'
     with open (filenamecsv, 'a') as table:
         row_count = count_rows(filenamecsv)
-        first_line="Number,simpleFoam,procNum,potentialFoam,combineP+S,NumberIter,IterFrom,sec/iter,Comment"
+        first_line="Number,procNum,simpleFoam,simpleFoamClock,totalsimpleFoam,totalsimpleFoamClock,potentialFoam,combineP+S,NumberIter,IterFrom,sec/iter,clock/iter,Comment"
         # Counting the number of experiments.
         if row_count==0:
             another_line = "1"
@@ -163,14 +186,23 @@ def pick_info(iter):
             num_iter=str(iter)
             iterfrom=str(int(get_iter())-iter)
             time_simple=str(float(extract_exec_time("log.simpleFoam"))-float(get_time_for_iter(int(iterfrom))))
+            clock_simple=str(int(extract_clock_time("log.simpleFoam"))-int(get_clock_for_iter(int(iterfrom))))
+            time_simple_total=extract_exec_time("log.simpleFoam")
+            clock_total=extract_clock_time("log.simpleFoam")
 
         
         # total execution time, number of proc used and number of cells
-        another_line+=','+time_simple+','+get_num_proc()
+        another_line+=','+get_num_proc()+','+time_simple+','+clock_simple+','+time_simple_total+','+clock_total
 
         # adding execution times for pontetialFoam and simpleFoam. If more variables wanted to be added,
         # this is when it should be done
-        another_line+=','+extract_exec_time("log.potentialFoam")+','+str(float(extract_exec_time("log.potentialFoam"))+ float(extract_exec_time("log.simpleFoam")))+','+num_iter+','+iterfrom+','+str(float(time_simple)/float(num_iter))+',""'
+        another_line+=','+extract_exec_time("log.potentialFoam")+','+str(float(extract_exec_time("log.potentialFoam"))+ float(extract_exec_time("log.simpleFoam")))+','+num_iter+','+iterfrom
+        another_line+=','+str(float(time_simple)/float(num_iter))+','+str(float(clock_simple)/float(num_iter))+','
+        if comment==None:
+            another_line+='""'
+        else:
+            another_line+='"'+comment+'"'
+        
         if row_count==0:
             table.write(first_line)
         table.write("\n"+another_line)
@@ -218,6 +250,7 @@ def execution_raw():
 # message = if none, the csv message field will be left blank
 # line =  if specified, it will modified an specific line number
 # decomp=-1 implies that the parameter that is going to be changed is not in allrun. other number means that allrun is going to be changed
+
 
 def exec_with_modification(output_filename,filename, variable, value, message=None,line=None,decomp=-1):
     print("\nCleaning and begining execution\n")
@@ -493,4 +526,15 @@ def underpopulating():
 if __name__ == "__main__":
     # main()
     # workflow()
-    underpopulating()
+    # underpopulating()
+    # list=[1,2,4,6,8,10,12,14,16,18,20,22]
+    # change_one_slurm("foam-rest-gecko",list)
+    list=[2,4,6,8,10,]
+    list_2lm=[2,4,6,8,10,12,14,16]
+    list_2lm.reverse()
+    # list=[12,14,16,18,20,22]
+    list.reverse()
+    # change_one_slurm("foam-rest-gecko",list)
+    # change_two_slurm("foam-decompose-rail-h1","foam-rest-rail-h1",list)
+    # change_two_slurm("foam-decompose-rail","foam-rest-rail",list)
+   

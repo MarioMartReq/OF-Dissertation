@@ -1,0 +1,24 @@
+#!/bin/bash --login
+#
+##PBS -N foam
+#PBS -l place=excl
+##PBS -l select=1:ncpus=36
+#PBS -l walltime=3:0:0
+#PBS -A d167-s1888807
+
+cd $PBS_O_WORKDIR
+
+module load intel-compilers-18 intel-mpi-18
+
+source /lustre/home/d167/s1888807/dissertation/intel-vanilla-19/OpenFOAM-v1812/etc/bashrc
+
+total_proc=1800
+ppn=36
+
+decompDict="-decomposeParDict system/decomposeParDict.$total_proc"
+
+mpirun -n ${total_proc} -ppn ${ppn} renumberMesh -frontWidth -latestTime -constant -dict system/renumberMeshDict -overwrite -parallel ${decompDict} > log.renumberMesh
+mpirun -n ${total_proc} -ppn ${ppn} potentialFoam -parallel ${decompDict} > log.potentialFoam
+mpirun -n ${total_proc} -ppn ${ppn} simpleFoam -parallel ${decompDict} > log.simpleFoam
+
+python -c "import exec_foam as ex; ex.pick_info(100,'first_round_full')"

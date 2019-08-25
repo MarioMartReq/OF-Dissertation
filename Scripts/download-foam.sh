@@ -1,5 +1,4 @@
-# Comment this if to download and extract in the same folder
-
+# Comment this "if" to download and extract in the same folder
 if [ -z $1 ]
 then
     mkdir OpenFOAM
@@ -9,10 +8,16 @@ else
     cd $1
 fi
 
-wget https://sourceforge.net/projects/openfoamplus/files/v1812/OpenFOAM-v1812.tgz
-wget https://sourceforge.net/projects/openfoamplus/files/v1812/ThirdParty-v1812.tgz
-tar -xf OpenFOAM-v1812.tgz
-tar -xf ThirdParty-v1812.tgz
-rm -rf OpenFOAM-v1812.tgz ThirdParty-v1812.tgz
-source OpenFOAM-v1812/etc/bashrc
+version=1812
+
+wget https://sourceforge.net/projects/openfoamplus/files/v${version}/OpenFOAM-v${version}.tgz
+wget https://sourceforge.net/projects/openfoamplus/files/v${version}/ThirdParty-v${version}.tgz
+tar -xf OpenFOAM-v${version}.tgz
+tar -xf ThirdParty-v${version}.tgz
+rm -rf OpenFOAM-v${version}.tgz ThirdParty-v${version}.tgz
+source OpenFOAM-v${version}/etc/bashrc
+
+# Metis download. Comment if it is not requried. 
+cd ThirdParty-v${version} && wget http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/metis-5.1.0.tar.gz && tar -xf metis-5.1.0.tar.gz 
+
 exec bash

@@ -1,0 +1,62 @@
+runParallelNodes()
+{
+    local appRun logFile logMode nProcs
+
+    # Any additional parsed arguments (eg, decomposeParDict)
+    local appArgs="-parallel"
+
+    # Parse options until executable is encountered
+    while [ $# -gt 0 -a -z "$appRun" ]
+    do
+        case "$1" in
+            -a | -append)
+                logMode=append
+                ;;
+            -o | -overwrite)
+                logMode=overwrite
+                ;;
+            -s | -suffix)
+                logFile=".$2"
+                shift
+                ;;
+            -n | -np)
+                nProcs="$2"
+                shift
+                ;;
+            -decomposeParDict)
+                appArgs="$appArgs $1 $2"
+                nProcs=$(getNumberOfProcessors "$2")
+                shift
+                ;;
+            '')
+                ;;
+            *)
+                appRun="$1"
+                ;;
+        esac
+        shift
+    done
+
+    [ -n "$nProcs" ] || nProcs=$(getNumberOfProcessors system/decomposeParDict)
+
+    local appName="${appRun##*/}"
+    logFile="log.$appName$logFile"
+
+    if [ -f "$logFile" -a -z "$logMode" ]
+    then
+        echo "$appName already run on $PWD:" \
+             "remove log file '$logFile' to re-run"
+    else
+        echo "Running $appRun ($nProcs processes) on $PWD "
+        if [ "$logMode" = append ]
+        then
+        (
+            mpirun -machinefile hostfile -np $nProcs $appRun $appArgs "$@" </dev/null >> $logFile 2>&1
+        )
+        else
+        (
+            mpirun -machinefile hostfile -np $nProcs $appRun $appArgs "$@" </dev/null > $logFile 2>&1
+        )
+        fi
+    fi
+}
