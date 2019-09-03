@@ -3,12 +3,12 @@
 #SBATCH --tasks-per-node=1
 #SBATCH --job-name=foam_decompose_under
 #SBATCH --output=foam_execution.txt
-#SBATCH -D /home/m1819/m1819/s1888807/OpenFOAM/s1888807-v1812/run/renault
+#SBATCH -D ##/path/to/script/directory
 ##SBATCH --nodelist=nextgenio-cn[01-04]
 #SBATCH -p normal
 
-#SBATCH -o /home/m1819/m1819/s1888807/OpenFOAM/s1888807-v1812/run/renault/E22_decomp.out.%A.%N.log
-#SBATCH -e /home/m1819/m1819/s1888807/OpenFOAM/s1888807-v1812/run/renault/E22_decomp.err.%A.%N.log
+#SBATCH -o ##/path/to/script/directory.out.%A.%N.log
+#SBATCH -e ##/path/to/script/directory.err.%A.%N.log
 
 export KMP_AFFINITY=scatter #,verbose
 export I_MPI_DEBUG=5
