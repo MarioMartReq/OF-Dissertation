@@ -8,7 +8,7 @@ This folder contains the different scripts used during the development of the di
 Script containing various functions to launch and collect information about executions. 
 
 
-### [download_foam.py](https://github.com/MarioMartReq/OF-Dissertation/blob/master/Scripts/download_foam.py)
+### [download_foam.sh](https://github.com/MarioMartReq/OF-Dissertation/blob/master/Scripts/download_foam.py)
 
 Script that automatically downloads and decompresses the specified OpenFOAM version. 
 
